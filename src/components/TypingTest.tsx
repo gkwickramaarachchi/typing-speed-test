@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useCallback } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { Clock, RotateCcw, Play, Square } from "lucide-react";
@@ -71,9 +70,24 @@ const TypingTest = () => {
       setIsActive(false);
       setIsFinished(true);
       calculateStats();
+      const finalWpm = Math.round((input.trim().split(" ").length / (TIMER_DURATION - timeLeft)) * 60);
+      const correctCharacters = [...input].filter((char, i) => char === text[i]).length;
+      const finalAccuracy = Math.round((correctCharacters / input.length) * 100) || 0;
+      
       toast({
-        title: "Test completed!",
-        description: `Final WPM: ${wpm} | Accuracy: ${accuracy}%`,
+        title: "🎯 Test Results",
+        description: (
+          <div className="space-y-2">
+            <p className="font-semibold">Words per Minute: {finalWpm} WPM</p>
+            <p className="font-semibold">Accuracy: {finalAccuracy}%</p>
+            <p className="text-sm text-gray-500 mt-2">
+              Characters typed: {input.length}
+              <br />
+              Correct characters: {correctCharacters}
+            </p>
+          </div>
+        ),
+        duration: 5000, // Show for 5 seconds
       });
     }
   };
@@ -175,18 +189,7 @@ const TypingTest = () => {
         </div>
 
         {isFinished && (
-          <div className="text-center space-y-4">
-            <h2 className="text-2xl font-semibold text-gray-800">Results</h2>
-            <div className="grid grid-cols-2 gap-4 max-w-md mx-auto">
-              <div className="p-4 bg-white rounded-lg shadow-sm">
-                <p className="text-gray-600">Final WPM</p>
-                <p className="text-2xl font-mono">{wpm}</p>
-              </div>
-              <div className="p-4 bg-white rounded-lg shadow-sm">
-                <p className="text-gray-600">Accuracy</p>
-                <p className="text-2xl font-mono">{accuracy}%</p>
-              </div>
-            </div>
+          <div className="text-center">
             <button
               onClick={resetTest}
               className="px-6 py-2 bg-gray-800 text-white rounded-lg hover:bg-gray-700 transition-colors"
