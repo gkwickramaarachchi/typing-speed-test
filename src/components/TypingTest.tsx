@@ -1,7 +1,7 @@
 
 import React, { useState, useEffect, useCallback } from "react";
 import { useToast } from "@/hooks/use-toast";
-import { Clock, RotateCcw } from "lucide-react";
+import { Clock, RotateCcw, Play, Square } from "lucide-react";
 
 const TIMER_DURATION = 60; // 60 seconds typing test
 const SAMPLE_TEXT =
@@ -66,11 +66,22 @@ const TypingTest = () => {
     }
   };
 
-  const handleInput = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    if (!isActive && !isFinished) {
-      handleStart();
+  const handleFinish = () => {
+    if (isActive) {
+      setIsActive(false);
+      setIsFinished(true);
+      calculateStats();
+      toast({
+        title: "Test completed!",
+        description: `Final WPM: ${wpm} | Accuracy: ${accuracy}%`,
+      });
     }
-    setInput(e.target.value);
+  };
+
+  const handleInput = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    if (isActive) {
+      setInput(e.target.value);
+    }
   };
 
   const resetTest = () => {
@@ -112,6 +123,7 @@ const TypingTest = () => {
             <button
               onClick={resetTest}
               className="p-2 rounded-full hover:bg-gray-200 transition-colors"
+              title="Reset test"
             >
               <RotateCcw className="w-5 h-5 text-gray-600" />
             </button>
@@ -129,18 +141,37 @@ const TypingTest = () => {
         </div>
 
         <div className="relative">
-          <div
-            className="p-6 rounded-lg bg-white shadow-sm font-mono text-lg leading-relaxed mb-4 min-h-[200px]"
-          >
+          <div className="p-6 rounded-lg bg-white shadow-sm font-mono text-lg leading-relaxed mb-4 min-h-[200px]">
             {renderText()}
           </div>
           <textarea
             value={input}
             onChange={handleInput}
-            disabled={isFinished}
+            disabled={!isActive || isFinished}
             className="absolute inset-0 w-full h-full opacity-0 cursor-text"
             autoFocus
           />
+        </div>
+
+        <div className="flex justify-center space-x-4">
+          {!isActive && !isFinished && (
+            <button
+              onClick={handleStart}
+              className="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors flex items-center space-x-2"
+            >
+              <Play className="w-4 h-4" />
+              <span>Start Test</span>
+            </button>
+          )}
+          {isActive && (
+            <button
+              onClick={handleFinish}
+              className="px-6 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors flex items-center space-x-2"
+            >
+              <Square className="w-4 h-4" />
+              <span>Finish Test</span>
+            </button>
+          )}
         </div>
 
         {isFinished && (
@@ -162,12 +193,6 @@ const TypingTest = () => {
             >
               Try Again
             </button>
-          </div>
-        )}
-
-        {!isActive && !isFinished && (
-          <div className="text-center">
-            <p className="text-gray-600">Click anywhere in the text box to start typing</p>
           </div>
         )}
       </div>
