@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useCallback } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { Clock, RotateCcw, Play, Square } from "lucide-react";
@@ -90,56 +89,47 @@ const TypingTest = () => {
       calculateStats();
       
       toast({
-        title: "🎯 Test Results",
+        title: "Test Results",
         description: (
-          <div className="space-y-2">
-            <div className="bg-white p-6 rounded-lg shadow-lg w-[500px] space-y-4">
-              <div className="text-center mb-4">
-                <h3 className="text-2xl font-bold text-gray-800">Your Performance</h3>
-                <p className="text-gray-500">Here's how you did</p>
+          <div className="w-full space-y-4">
+            <div className="grid grid-cols-3 gap-3">
+              <div className="bg-white/50 backdrop-blur-sm p-3 rounded-lg text-center">
+                <p className="text-2xl font-bold text-green-600">{wpm}</p>
+                <p className="text-xs text-gray-600">Words/min</p>
               </div>
-              
-              <div className="grid grid-cols-3 gap-4">
-                <div className="bg-gray-50 p-4 rounded-lg text-center">
-                  <p className="text-3xl font-bold text-green-600">{wpm}</p>
-                  <p className="text-sm text-gray-600 mt-1">Words per Minute</p>
-                </div>
-                <div className="bg-gray-50 p-4 rounded-lg text-center">
-                  <p className="text-3xl font-bold text-blue-600">{cpm}</p>
-                  <p className="text-sm text-gray-600 mt-1">Characters per Minute</p>
-                </div>
-                <div className="bg-gray-50 p-4 rounded-lg text-center">
-                  <p className="text-3xl font-bold text-purple-600">{accuracy}%</p>
-                  <p className="text-sm text-gray-600 mt-1">Accuracy</p>
-                </div>
+              <div className="bg-white/50 backdrop-blur-sm p-3 rounded-lg text-center">
+                <p className="text-2xl font-bold text-blue-600">{cpm}</p>
+                <p className="text-xs text-gray-600">Chars/min</p>
               </div>
-              
-              <div className="border-t border-gray-200 pt-4 mt-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="text-sm text-gray-600">
-                    <span>Characters typed:</span>
-                    <span className="font-semibold ml-2">{input.length}</span>
-                  </div>
-                  <div className="text-sm text-gray-600">
-                    <span>Correct characters:</span>
-                    <span className="font-semibold ml-2">
-                      {[...input].filter((char, i) => char === text[i]).length}
-                    </span>
-                  </div>
-                  <div className="text-sm text-gray-600">
-                    <span>Time taken:</span>
-                    <span className="font-semibold ml-2">{selectedTime - timeLeft}s</span>
-                  </div>
-                  <div className="text-sm text-gray-600">
-                    <span>Time limit:</span>
-                    <span className="font-semibold ml-2">{selectedTime}s</span>
-                  </div>
-                </div>
+              <div className="bg-white/50 backdrop-blur-sm p-3 rounded-lg text-center">
+                <p className="text-2xl font-bold text-purple-600">{accuracy}%</p>
+                <p className="text-xs text-gray-600">Accuracy</p>
+              </div>
+            </div>
+            
+            <div className="grid grid-cols-2 gap-2 text-xs text-gray-600">
+              <div className="flex justify-between">
+                <span>Characters:</span>
+                <span className="font-medium">{input.length}</span>
+              </div>
+              <div className="flex justify-between">
+                <span>Correct:</span>
+                <span className="font-medium">
+                  {[...input].filter((char, i) => char === text[i]).length}
+                </span>
+              </div>
+              <div className="flex justify-between">
+                <span>Time:</span>
+                <span className="font-medium">{selectedTime - timeLeft}s</span>
+              </div>
+              <div className="flex justify-between">
+                <span>Duration:</span>
+                <span className="font-medium">{selectedTime}s</span>
               </div>
             </div>
           </div>
         ),
-        duration: 8000,
+        duration: 5000,
       });
     }
   };
