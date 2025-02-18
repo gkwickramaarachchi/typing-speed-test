@@ -1,5 +1,5 @@
+
 import React, { useState, useEffect, useCallback } from "react";
-import { useToast } from "@/hooks/use-toast";
 import { Clock, RotateCcw, Play, Square } from "lucide-react";
 
 const TEXT_SAMPLES = [
@@ -26,7 +26,6 @@ const TypingTest = () => {
   const [cpm, setCpm] = useState(0);
   const [accuracy, setAccuracy] = useState(100);
   const [isFinished, setIsFinished] = useState(false);
-  const { toast } = useToast();
 
   const calculateStats = useCallback(() => {
     const words = input.trim().split(" ").length;
@@ -53,14 +52,14 @@ const TypingTest = () => {
           if (time <= 1) {
             setIsActive(false);
             setIsFinished(true);
-            handleFinish();
+            calculateStats();
           }
           return time - 1;
         });
       }, 1000);
     }
     return () => clearInterval(interval);
-  }, [isActive, timeLeft]);
+  }, [isActive, timeLeft, calculateStats]);
 
   useEffect(() => {
     if (isActive) {
@@ -75,10 +74,6 @@ const TypingTest = () => {
       setTimeLeft(selectedTime);
       setIsActive(true);
       setInput("");
-      toast({
-        title: "Test started!",
-        description: "Start typing to begin...",
-      });
     }
   };
 
@@ -87,50 +82,6 @@ const TypingTest = () => {
       setIsActive(false);
       setIsFinished(true);
       calculateStats();
-      
-      toast({
-        title: "Test Results",
-        description: (
-          <div className="w-full space-y-4">
-            <div className="grid grid-cols-3 gap-3">
-              <div className="bg-white/50 backdrop-blur-sm p-3 rounded-lg text-center">
-                <p className="text-2xl font-bold text-green-600">{wpm}</p>
-                <p className="text-xs text-gray-600">Words/min</p>
-              </div>
-              <div className="bg-white/50 backdrop-blur-sm p-3 rounded-lg text-center">
-                <p className="text-2xl font-bold text-blue-600">{cpm}</p>
-                <p className="text-xs text-gray-600">Chars/min</p>
-              </div>
-              <div className="bg-white/50 backdrop-blur-sm p-3 rounded-lg text-center">
-                <p className="text-2xl font-bold text-purple-600">{accuracy}%</p>
-                <p className="text-xs text-gray-600">Accuracy</p>
-              </div>
-            </div>
-            
-            <div className="grid grid-cols-2 gap-2 text-xs text-gray-600">
-              <div className="flex justify-between">
-                <span>Characters:</span>
-                <span className="font-medium">{input.length}</span>
-              </div>
-              <div className="flex justify-between">
-                <span>Correct:</span>
-                <span className="font-medium">
-                  {[...input].filter((char, i) => char === text[i]).length}
-                </span>
-              </div>
-              <div className="flex justify-between">
-                <span>Time:</span>
-                <span className="font-medium">{selectedTime - timeLeft}s</span>
-              </div>
-              <div className="flex justify-between">
-                <span>Duration:</span>
-                <span className="font-medium">{selectedTime}s</span>
-              </div>
-            </div>
-          </div>
-        ),
-        duration: 5000,
-      });
     }
   };
 
@@ -150,10 +101,6 @@ const TypingTest = () => {
     setAccuracy(100);
     const randomIndex = Math.floor(Math.random() * TEXT_SAMPLES.length);
     setText(TEXT_SAMPLES[randomIndex]);
-    toast({
-      title: "Test reset",
-      description: "Ready for a new attempt!",
-    });
   };
 
   const renderText = () => {
@@ -233,8 +180,59 @@ const TypingTest = () => {
           />
         </div>
 
-        <div className="flex justify-center space-x-4">
-          {!isActive && !isFinished && (
+        {isFinished && (
+          <div className="bg-white rounded-lg shadow-sm p-6 space-y-6">
+            <h2 className="text-2xl font-bold text-center text-gray-800">Test Results</h2>
+            
+            <div className="grid grid-cols-3 gap-6">
+              <div className="bg-gray-50 p-4 rounded-lg text-center">
+                <p className="text-3xl font-bold text-green-600">{wpm}</p>
+                <p className="text-sm text-gray-600 mt-1">Words per Minute</p>
+              </div>
+              <div className="bg-gray-50 p-4 rounded-lg text-center">
+                <p className="text-3xl font-bold text-blue-600">{cpm}</p>
+                <p className="text-sm text-gray-600 mt-1">Characters per Minute</p>
+              </div>
+              <div className="bg-gray-50 p-4 rounded-lg text-center">
+                <p className="text-3xl font-bold text-purple-600">{accuracy}%</p>
+                <p className="text-sm text-gray-600 mt-1">Accuracy</p>
+              </div>
+            </div>
+            
+            <div className="grid grid-cols-2 gap-4 text-sm text-gray-600">
+              <div className="flex justify-between">
+                <span>Characters typed:</span>
+                <span className="font-medium">{input.length}</span>
+              </div>
+              <div className="flex justify-between">
+                <span>Correct characters:</span>
+                <span className="font-medium">
+                  {[...input].filter((char, i) => char === text[i]).length}
+                </span>
+              </div>
+              <div className="flex justify-between">
+                <span>Time taken:</span>
+                <span className="font-medium">{selectedTime - timeLeft}s</span>
+              </div>
+              <div className="flex justify-between">
+                <span>Time limit:</span>
+                <span className="font-medium">{selectedTime}s</span>
+              </div>
+            </div>
+
+            <div className="text-center mt-6">
+              <button
+                onClick={resetTest}
+                className="px-6 py-2 bg-gray-800 text-white rounded-lg hover:bg-gray-700 transition-colors"
+              >
+                Try Again
+              </button>
+            </div>
+          </div>
+        )}
+
+        {!isActive && !isFinished && (
+          <div className="flex justify-center">
             <button
               onClick={handleStart}
               className="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors flex items-center space-x-2"
@@ -242,25 +240,17 @@ const TypingTest = () => {
               <Play className="w-4 h-4" />
               <span>Start Test</span>
             </button>
-          )}
-          {isActive && (
+          </div>
+        )}
+        
+        {isActive && (
+          <div className="flex justify-center">
             <button
               onClick={handleFinish}
               className="px-6 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors flex items-center space-x-2"
             >
               <Square className="w-4 h-4" />
               <span>Finish Test</span>
-            </button>
-          )}
-        </div>
-
-        {isFinished && (
-          <div className="text-center">
-            <button
-              onClick={resetTest}
-              className="px-6 py-2 bg-gray-800 text-white rounded-lg hover:bg-gray-700 transition-colors"
-            >
-              Try Again
             </button>
           </div>
         )}
