@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useCallback } from "react";
 import { Clock, RotateCcw, Play, Square } from "lucide-react";
 
@@ -16,16 +15,24 @@ const TIMER_OPTIONS = [
   { label: "5m", value: 300 },
 ];
 
+const KEYBOARD_LAYOUT = [
+  ['q', 'w', 'e', 'r', 't', 'y', 'u', 'i', 'o', 'p'],
+  ['a', 's', 'd', 'f', 'g', 'h', 'j', 'k', 'l'],
+  ['z', 'x', 'c', 'v', 'b', 'n', 'm']
+];
+
 const TypingTest = () => {
   const [text, setText] = useState(TEXT_SAMPLES[0]);
   const [input, setInput] = useState("");
   const [timeLeft, setTimeLeft] = useState(60);
   const [selectedTime, setSelectedTime] = useState(60);
+  const [customTime, setCustomTime] = useState("");
   const [isActive, setIsActive] = useState(false);
   const [wpm, setWpm] = useState(0);
   const [cpm, setCpm] = useState(0);
   const [accuracy, setAccuracy] = useState(100);
   const [isFinished, setIsFinished] = useState(false);
+  const [activeKeys, setActiveKeys] = useState<Set<string>>(new Set());
 
   const calculateStats = useCallback(() => {
     const words = input.trim().split(" ").length;
@@ -67,13 +74,53 @@ const TypingTest = () => {
     }
   }, [isActive, input, calculateStats]);
 
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (isActive) {
+        setActiveKeys((prev) => new Set([...prev, e.key.toLowerCase()]));
+      }
+    };
+
+    const handleKeyUp = (e: KeyboardEvent) => {
+      if (isActive) {
+        setActiveKeys((prev) => {
+          const newSet = new Set(prev);
+          newSet.delete(e.key.toLowerCase());
+          return newSet;
+        });
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    window.addEventListener('keyup', handleKeyUp);
+
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+      window.removeEventListener('keyup', handleKeyUp);
+    };
+  }, [isActive]);
+
+  const handleCustomTimeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    if (/^\d*$/.test(value) && Number(value) <= 3600) {
+      setCustomTime(value);
+      if (value) {
+        setSelectedTime(Number(value));
+      }
+    }
+  };
+
   const handleStart = () => {
     if (!isActive && !isFinished) {
+      if (selectedTime < 1) {
+        return;
+      }
       const randomIndex = Math.floor(Math.random() * TEXT_SAMPLES.length);
       setText(TEXT_SAMPLES[randomIndex]);
       setTimeLeft(selectedTime);
       setIsActive(true);
       setInput("");
+      setActiveKeys(new Set());
     }
   };
 
@@ -117,6 +164,40 @@ const TypingTest = () => {
     });
   };
 
+  const renderKeyboard = () => {
+    return (
+      <div className="w-full max-w-3xl mx-auto mt-8">
+        {KEYBOARD_LAYOUT.map((row, rowIndex) => (
+          <div key={rowIndex} className="flex justify-center gap-1 mb-1">
+            {row.map((key) => (
+              <div
+                key={key}
+                className={`w-10 h-10 flex items-center justify-center rounded-lg font-medium transition-colors ${
+                  activeKeys.has(key)
+                    ? "bg-green-500 text-white"
+                    : "bg-gray-200 text-gray-700"
+                }`}
+              >
+                {key.toUpperCase()}
+              </div>
+            ))}
+          </div>
+        ))}
+        <div className="flex justify-center mt-1">
+          <div
+            className={`w-64 h-10 flex items-center justify-center rounded-lg font-medium transition-colors ${
+              activeKeys.has(" ")
+                ? "bg-green-500 text-white"
+                : "bg-gray-200 text-gray-700"
+            }`}
+          >
+            SPACE
+          </div>
+        </div>
+      </div>
+    );
+  };
+
   return (
     <div className="min-h-screen flex flex-col items-center justify-center p-6 bg-gray-50">
       <div className="w-full max-w-4xl space-y-8">
@@ -135,20 +216,33 @@ const TypingTest = () => {
             </button>
           </div>
           
-          <div className="flex space-x-2">
-            {TIMER_OPTIONS.map((option) => (
-              <button
-                key={option.value}
-                onClick={() => setSelectedTime(option.value)}
-                className={`px-3 py-1 rounded-md transition-colors ${
-                  selectedTime === option.value
-                    ? "bg-gray-800 text-white"
-                    : "bg-gray-200 text-gray-700 hover:bg-gray-300"
-                }`}
-              >
-                {option.label}
-              </button>
-            ))}
+          <div className="flex items-center space-x-4">
+            <input
+              type="text"
+              value={customTime}
+              onChange={handleCustomTimeChange}
+              placeholder="Custom time (seconds)"
+              className="px-3 py-1 w-40 rounded-md border border-gray-300 focus:outline-none focus:border-gray-500"
+              disabled={isActive}
+            />
+            <div className="flex space-x-2">
+              {TIMER_OPTIONS.map((option) => (
+                <button
+                  key={option.value}
+                  onClick={() => {
+                    setSelectedTime(option.value);
+                    setCustomTime("");
+                  }}
+                  className={`px-3 py-1 rounded-md transition-colors ${
+                    selectedTime === option.value && !customTime
+                      ? "bg-gray-800 text-white"
+                      : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+                  }`}
+                >
+                  {option.label}
+                </button>
+              ))}
+            </div>
           </div>
 
           <div className="flex space-x-6">
@@ -179,6 +273,8 @@ const TypingTest = () => {
             autoFocus
           />
         </div>
+
+        {renderKeyboard()}
 
         {isFinished && (
           <div className="bg-white rounded-lg shadow-sm p-6 space-y-6">
