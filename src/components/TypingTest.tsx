@@ -1,11 +1,17 @@
 import React, { useState, useEffect, useCallback } from "react";
-import { Clock, RotateCcw, Play, Square } from "lucide-react";
+import { Clock, RotateCcw, Play, Square, Plus } from "lucide-react";
 
 const TEXT_SAMPLES = [
-  `The quick brown fox jumps over the lazy dog. Technology continues to evolve at an unprecedented pace, transforming how we live and work. Innovation drives progress, pushing boundaries and creating new possibilities. Each day brings fresh challenges and opportunities for growth.`,
-  `As the sun sets behind the mountains, casting long shadows across the valley, a gentle breeze rustles through the autumn leaves. The changing seasons bring a symphony of colors, from vibrant reds to deep golds, painting nature's canvas with stunning beauty. In these quiet moments, we find peace in the world's natural rhythm.`,
-  `Scientists explore the frontiers of space, uncovering mysteries that have puzzled humanity for centuries. Each discovery brings us closer to understanding our place in the vast cosmos. Through advanced telescopes and space probes, we peer deeper into the universe, revealing new worlds and possibilities.`,
-  `The digital revolution has transformed the way we communicate, learn, and interact with the world around us. Social media platforms connect people across continents, while artificial intelligence reshapes industries and everyday experiences. As technology advances, we must consider its impact on society and human relationships.`
+  `The quick brown fox jumps over the lazy dog. Technology continues to evolve at an unprecedented pace, transforming how we live and work. Innovation drives progress, pushing boundaries and creating new possibilities.`,
+  `As the sun sets behind the mountains, casting long shadows across the valley, a gentle breeze rustles through the autumn leaves. The changing seasons bring a symphony of colors, from vibrant reds to deep golds.`,
+  `Scientists explore the frontiers of space, uncovering mysteries that have puzzled humanity for centuries. Each discovery brings us closer to understanding our place in the vast cosmos.`,
+  `The digital revolution has transformed the way we communicate, learn, and interact with the world around us. Social media platforms connect people across continents, while artificial intelligence reshapes industries.`,
+  `In the realm of programming, functions are fundamental building blocks that enable code reuse and modularity. They accept inputs, process data, and return outputs, forming the backbone of software development.`,
+  `The art of typing requires practice, patience, and proper technique. Maintaining the correct posture and finger placement on the home row keys is essential for developing speed and accuracy.`,
+  `Database management systems store, organize, and retrieve vast amounts of information efficiently. SQL queries enable powerful data manipulation and analysis capabilities for modern applications.`,
+  `Web development encompasses both frontend and backend technologies. HTML structures content, CSS styles the presentation, and JavaScript adds interactivity to create dynamic user experiences.`,
+  `Version control systems like Git track changes, facilitate collaboration, and maintain project history. Branches enable parallel development while merges combine different lines of work.`,
+  `Artificial intelligence algorithms process data, recognize patterns, and make predictions. Machine learning models improve through training, adapting their behavior based on new information.`
 ];
 
 const TIMER_OPTIONS = [
@@ -26,13 +32,15 @@ const TypingTest = () => {
   const [input, setInput] = useState("");
   const [timeLeft, setTimeLeft] = useState(60);
   const [selectedTime, setSelectedTime] = useState(60);
-  const [customTime, setCustomTime] = useState("");
   const [isActive, setIsActive] = useState(false);
   const [wpm, setWpm] = useState(0);
   const [cpm, setCpm] = useState(0);
   const [accuracy, setAccuracy] = useState(100);
   const [isFinished, setIsFinished] = useState(false);
   const [activeKeys, setActiveKeys] = useState<Set<string>>(new Set());
+  const [customTexts, setCustomTexts] = useState<string[]>([]);
+  const [newText, setNewText] = useState("");
+  const [showTextForm, setShowTextForm] = useState(false);
 
   const calculateStats = useCallback(() => {
     const words = input.trim().split(" ").length;
@@ -100,35 +108,17 @@ const TypingTest = () => {
     };
   }, [isActive]);
 
-  const handleCustomTimeChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const value = e.target.value;
-    if (/^\d*$/.test(value) && Number(value) <= 3600) {
-      setCustomTime(value);
-      if (value) {
-        setSelectedTime(Number(value));
-      }
+  const handleAddCustomText = () => {
+    if (newText.trim()) {
+      setCustomTexts([...customTexts, newText.trim()]);
+      setNewText("");
+      setShowTextForm(false);
     }
   };
 
-  const handleStart = () => {
-    if (!isActive && !isFinished) {
-      if (selectedTime < 1) {
-        return;
-      }
-      const randomIndex = Math.floor(Math.random() * TEXT_SAMPLES.length);
-      setText(TEXT_SAMPLES[randomIndex]);
-      setTimeLeft(selectedTime);
-      setIsActive(true);
-      setInput("");
-      setActiveKeys(new Set());
-    }
-  };
-
-  const handleFinish = () => {
-    if (isActive || timeLeft <= 1) {
-      setIsActive(false);
-      setIsFinished(true);
-      calculateStats();
+  const handleSelectText = (selectedText: string) => {
+    if (!isActive) {
+      setText(selectedText);
     }
   };
 
@@ -217,24 +207,15 @@ const TypingTest = () => {
           </div>
           
           <div className="flex items-center space-x-4">
-            <input
-              type="text"
-              value={customTime}
-              onChange={handleCustomTimeChange}
-              placeholder="Custom time (seconds)"
-              className="px-3 py-1 w-40 rounded-md border border-gray-300 focus:outline-none focus:border-gray-500"
-              disabled={isActive}
-            />
             <div className="flex space-x-2">
               {TIMER_OPTIONS.map((option) => (
                 <button
                   key={option.value}
                   onClick={() => {
                     setSelectedTime(option.value);
-                    setCustomTime("");
                   }}
                   className={`px-3 py-1 rounded-md transition-colors ${
-                    selectedTime === option.value && !customTime
+                    selectedTime === option.value
                       ? "bg-gray-800 text-white"
                       : "bg-gray-200 text-gray-700 hover:bg-gray-300"
                   }`}
@@ -258,6 +239,58 @@ const TypingTest = () => {
               <p className="text-sm text-gray-600">Accuracy</p>
               <p className="text-xl font-mono">{accuracy}%</p>
             </div>
+          </div>
+        </div>
+
+        <div className="bg-white p-4 rounded-lg shadow-sm">
+          <div className="flex justify-between items-center mb-4">
+            <h3 className="text-lg font-semibold">Sample Texts</h3>
+            <button
+              onClick={() => setShowTextForm(!showTextForm)}
+              className="flex items-center space-x-2 px-3 py-1 bg-gray-100 rounded-md hover:bg-gray-200 transition-colors"
+            >
+              <Plus className="w-4 h-4" />
+              <span>Add Text</span>
+            </button>
+          </div>
+
+          {showTextForm && (
+            <div className="mb-4 space-y-2">
+              <textarea
+                value={newText}
+                onChange={(e) => setNewText(e.target.value)}
+                placeholder="Enter your custom text here..."
+                className="w-full p-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-gray-400"
+                rows={3}
+              />
+              <div className="flex justify-end space-x-2">
+                <button
+                  onClick={() => setShowTextForm(false)}
+                  className="px-3 py-1 text-gray-600 hover:bg-gray-100 rounded-md"
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleAddCustomText}
+                  className="px-3 py-1 bg-gray-800 text-white rounded-md hover:bg-gray-700"
+                >
+                  Add
+                </button>
+              </div>
+            </div>
+          )}
+
+          <div className="space-y-2 max-h-40 overflow-y-auto">
+            {[...TEXT_SAMPLES, ...customTexts].map((sampleText, index) => (
+              <button
+                key={index}
+                onClick={() => handleSelectText(sampleText)}
+                disabled={isActive}
+                className="w-full text-left p-2 text-sm hover:bg-gray-50 rounded-md transition-colors truncate disabled:opacity-50"
+              >
+                {sampleText.substring(0, 100)}...
+              </button>
+            ))}
           </div>
         </div>
 
@@ -330,7 +363,19 @@ const TypingTest = () => {
         {!isActive && !isFinished && (
           <div className="flex justify-center">
             <button
-              onClick={handleStart}
+              onClick={() => {
+                if (!isActive && !isFinished) {
+                  if (selectedTime < 1) {
+                    return;
+                  }
+                  const randomIndex = Math.floor(Math.random() * TEXT_SAMPLES.length);
+                  setText(TEXT_SAMPLES[randomIndex]);
+                  setTimeLeft(selectedTime);
+                  setIsActive(true);
+                  setInput("");
+                  setActiveKeys(new Set());
+                }
+              }}
               className="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors flex items-center space-x-2"
             >
               <Play className="w-4 h-4" />
@@ -342,7 +387,13 @@ const TypingTest = () => {
         {isActive && (
           <div className="flex justify-center">
             <button
-              onClick={handleFinish}
+              onClick={() => {
+                if (isActive || timeLeft <= 1) {
+                  setIsActive(false);
+                  setIsFinished(true);
+                  calculateStats();
+                }
+              }}
               className="px-6 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors flex items-center space-x-2"
             >
               <Square className="w-4 h-4" />
