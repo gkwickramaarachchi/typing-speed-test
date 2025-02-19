@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from "react";
-import { Clock, RotateCcw, Play, Square, Plus } from "lucide-react";
+import { Clock, RotateCcw, Play, Square } from "lucide-react";
 
 const TEXT_SAMPLES = [
   `The quick brown fox jumps over the lazy dog. Technology continues to evolve at an unprecedented pace, transforming how we live and work. Innovation drives progress, pushing boundaries and creating new possibilities.`,
@@ -38,9 +38,6 @@ const TypingTest = () => {
   const [accuracy, setAccuracy] = useState(100);
   const [isFinished, setIsFinished] = useState(false);
   const [activeKeys, setActiveKeys] = useState<Set<string>>(new Set());
-  const [customTexts, setCustomTexts] = useState<string[]>([]);
-  const [newText, setNewText] = useState("");
-  const [showTextForm, setShowTextForm] = useState(false);
 
   const calculateStats = useCallback(() => {
     const words = input.trim().split(" ").length;
@@ -108,20 +105,6 @@ const TypingTest = () => {
     };
   }, [isActive]);
 
-  const handleAddCustomText = () => {
-    if (newText.trim()) {
-      setCustomTexts([...customTexts, newText.trim()]);
-      setNewText("");
-      setShowTextForm(false);
-    }
-  };
-
-  const handleSelectText = (selectedText: string) => {
-    if (!isActive) {
-      setText(selectedText);
-    }
-  };
-
   const handleInput = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     if (isActive) {
       setInput(e.target.value);
@@ -152,40 +135,6 @@ const TypingTest = () => {
         </span>
       );
     });
-  };
-
-  const renderKeyboard = () => {
-    return (
-      <div className="w-full max-w-3xl mx-auto mt-8">
-        {KEYBOARD_LAYOUT.map((row, rowIndex) => (
-          <div key={rowIndex} className="flex justify-center gap-1 mb-1">
-            {row.map((key) => (
-              <div
-                key={key}
-                className={`w-10 h-10 flex items-center justify-center rounded-lg font-medium transition-colors ${
-                  activeKeys.has(key)
-                    ? "bg-green-500 text-white"
-                    : "bg-gray-200 text-gray-700"
-                }`}
-              >
-                {key.toUpperCase()}
-              </div>
-            ))}
-          </div>
-        ))}
-        <div className="flex justify-center mt-1">
-          <div
-            className={`w-64 h-10 flex items-center justify-center rounded-lg font-medium transition-colors ${
-              activeKeys.has(" ")
-                ? "bg-green-500 text-white"
-                : "bg-gray-200 text-gray-700"
-            }`}
-          >
-            SPACE
-          </div>
-        </div>
-      </div>
-    );
   };
 
   return (
@@ -242,58 +191,6 @@ const TypingTest = () => {
           </div>
         </div>
 
-        <div className="bg-white p-4 rounded-lg shadow-sm">
-          <div className="flex justify-between items-center mb-4">
-            <h3 className="text-lg font-semibold">Sample Texts</h3>
-            <button
-              onClick={() => setShowTextForm(!showTextForm)}
-              className="flex items-center space-x-2 px-3 py-1 bg-gray-100 rounded-md hover:bg-gray-200 transition-colors"
-            >
-              <Plus className="w-4 h-4" />
-              <span>Add Text</span>
-            </button>
-          </div>
-
-          {showTextForm && (
-            <div className="mb-4 space-y-2">
-              <textarea
-                value={newText}
-                onChange={(e) => setNewText(e.target.value)}
-                placeholder="Enter your custom text here..."
-                className="w-full p-2 border rounded-md focus:outline-none focus:ring-2 focus:ring-gray-400"
-                rows={3}
-              />
-              <div className="flex justify-end space-x-2">
-                <button
-                  onClick={() => setShowTextForm(false)}
-                  className="px-3 py-1 text-gray-600 hover:bg-gray-100 rounded-md"
-                >
-                  Cancel
-                </button>
-                <button
-                  onClick={handleAddCustomText}
-                  className="px-3 py-1 bg-gray-800 text-white rounded-md hover:bg-gray-700"
-                >
-                  Add
-                </button>
-              </div>
-            </div>
-          )}
-
-          <div className="space-y-2 max-h-40 overflow-y-auto">
-            {[...TEXT_SAMPLES, ...customTexts].map((sampleText, index) => (
-              <button
-                key={index}
-                onClick={() => handleSelectText(sampleText)}
-                disabled={isActive}
-                className="w-full text-left p-2 text-sm hover:bg-gray-50 rounded-md transition-colors truncate disabled:opacity-50"
-              >
-                {sampleText.substring(0, 100)}...
-              </button>
-            ))}
-          </div>
-        </div>
-
         <div className="relative">
           <div className="p-6 rounded-lg bg-white shadow-sm font-mono text-lg leading-relaxed mb-4 min-h-[200px]">
             {renderText()}
@@ -307,7 +204,35 @@ const TypingTest = () => {
           />
         </div>
 
-        {renderKeyboard()}
+        <div className="w-full max-w-4xl mx-auto mt-8">
+          {KEYBOARD_LAYOUT.map((row, rowIndex) => (
+            <div key={rowIndex} className="flex justify-center gap-2 mb-2">
+              {row.map((key) => (
+                <div
+                  key={key}
+                  className={`w-16 h-16 flex items-center justify-center rounded-lg font-medium text-xl transition-colors ${
+                    activeKeys.has(key)
+                      ? "bg-green-500 text-white"
+                      : "bg-gray-200 text-gray-700"
+                  }`}
+                >
+                  {key.toUpperCase()}
+                </div>
+              ))}
+            </div>
+          ))}
+          <div className="flex justify-center mt-2">
+            <div
+              className={`w-96 h-16 flex items-center justify-center rounded-lg font-medium text-xl transition-colors ${
+                activeKeys.has(" ")
+                  ? "bg-green-500 text-white"
+                  : "bg-gray-200 text-gray-700"
+              }`}
+            >
+              SPACE
+            </div>
+          </div>
+        </div>
 
         {isFinished && (
           <div className="bg-white rounded-lg shadow-sm p-6 space-y-6">
