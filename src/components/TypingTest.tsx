@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import { Clock, RotateCcw, Play, Square, X } from "lucide-react";
 import {
@@ -84,14 +83,14 @@ const TypingTest = () => {
       const randomIndex = Math.floor(Math.random() * TEXT_SAMPLES.length);
       setText(TEXT_SAMPLES[randomIndex]);
       setTimeLeft(selectedTime);
-      setIsActive(true);
       setInput("");
       setActiveKeys(new Set());
       
-      // Focus the textarea immediately after setting isActive to true
       if (textareaRef.current) {
         textareaRef.current.focus();
       }
+      
+      setIsActive(true);
     }
   };
 
@@ -145,7 +144,6 @@ const TypingTest = () => {
   const handleInput = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     if (isActive) {
       setInput(e.target.value);
-      // If user has typed all the text, finish the test early
       if (e.target.value.length === text.length) {
         finishTest();
       }
