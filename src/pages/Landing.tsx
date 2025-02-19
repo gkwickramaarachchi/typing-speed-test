@@ -12,18 +12,32 @@ const Landing = () => {
           </p>
         </div>
 
-        <div className="grid md:grid-cols-3 gap-8 mb-16">
-          <div className="bg-white p-6 rounded-lg shadow-sm">
-            <h3 className="text-xl font-semibold mb-4">Real-time Feedback</h3>
-            <p className="text-gray-600">Get instant feedback on your typing speed, accuracy, and areas for improvement.</p>
+        <div className="grid md:grid-cols-2 gap-12 mb-16">
+          <div className="space-y-6">
+            <img 
+              src="https://images.unsplash.com/photo-1488590528505-98d2b5aba04b"
+              alt="Typing practice interface"
+              className="w-full h-64 object-cover rounded-lg shadow-md"
+            />
+            <img 
+              src="https://images.unsplash.com/photo-1486312338219-ce68d2c6f44d"
+              alt="Person practicing typing"
+              className="w-full h-64 object-cover rounded-lg shadow-md"
+            />
           </div>
-          <div className="bg-white p-6 rounded-lg shadow-sm">
-            <h3 className="text-xl font-semibold mb-4">Visual Keyboard</h3>
-            <p className="text-gray-600">Interactive keyboard display helps you learn proper finger placement and typing technique.</p>
-          </div>
-          <div className="bg-white p-6 rounded-lg shadow-sm">
-            <h3 className="text-xl font-semibold mb-4">Progress Tracking</h3>
-            <p className="text-gray-600">Monitor your improvement over time with detailed statistics and performance metrics.</p>
+          <div className="space-y-6">
+            <div className="bg-white p-6 rounded-lg shadow-sm">
+              <h3 className="text-xl font-semibold mb-4">Real-time Feedback</h3>
+              <p className="text-gray-600">Get instant feedback on your typing speed, accuracy, and areas for improvement.</p>
+            </div>
+            <div className="bg-white p-6 rounded-lg shadow-sm">
+              <h3 className="text-xl font-semibold mb-4">Visual Keyboard</h3>
+              <p className="text-gray-600">Interactive keyboard display helps you learn proper finger placement and typing technique.</p>
+            </div>
+            <div className="bg-white p-6 rounded-lg shadow-sm">
+              <h3 className="text-xl font-semibold mb-4">Progress Tracking</h3>
+              <p className="text-gray-600">Monitor your improvement over time with detailed statistics and performance metrics.</p>
+            </div>
           </div>
         </div>
 

@@ -69,6 +69,24 @@ const TypingTest = () => {
     setAccuracy(Math.round(currentAccuracy));
   }, [input, text, timeLeft, selectedTime]);
 
+  const startTest = () => {
+    if (!isActive && !isFinished) {
+      if (selectedTime < 1) {
+        return;
+      }
+      const randomIndex = Math.floor(Math.random() * TEXT_SAMPLES.length);
+      setText(TEXT_SAMPLES[randomIndex]);
+      setTimeLeft(selectedTime);
+      setIsActive(true);
+      setInput("");
+      setActiveKeys(new Set());
+      const textarea = document.querySelector('textarea');
+      if (textarea) {
+        textarea.focus();
+      }
+    }
+  };
+
   useEffect(() => {
     let interval: number | undefined;
     if (isActive && timeLeft > 0) {
@@ -247,7 +265,7 @@ const TypingTest = () => {
             onChange={handleInput}
             disabled={!isActive || isFinished}
             className="absolute inset-0 w-full h-full opacity-0 cursor-text"
-            autoFocus
+            autoFocus={isActive}
           />
         </div>
 
@@ -317,19 +335,7 @@ const TypingTest = () => {
         {!isActive && !isFinished && (
           <div className="flex justify-center">
             <button
-              onClick={() => {
-                if (!isActive && !isFinished) {
-                  if (selectedTime < 1) {
-                    return;
-                  }
-                  const randomIndex = Math.floor(Math.random() * TEXT_SAMPLES.length);
-                  setText(TEXT_SAMPLES[randomIndex]);
-                  setTimeLeft(selectedTime);
-                  setIsActive(true);
-                  setInput("");
-                  setActiveKeys(new Set());
-                }
-              }}
+              onClick={startTest}
               className="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors flex items-center space-x-2"
             >
               <Play className="w-4 h-4" />

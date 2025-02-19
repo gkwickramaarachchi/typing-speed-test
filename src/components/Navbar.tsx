@@ -5,15 +5,15 @@ const Navbar = () => {
   const location = useLocation();
 
   const isActive = (path: string) => {
-    return location.pathname === path ? "bg-purple-700 text-white" : "text-gray-300 hover:bg-purple-600 hover:text-white";
+    return location.pathname === path ? "bg-blue-400 text-white" : "text-gray-700 hover:bg-blue-300 hover:text-white";
   };
 
   return (
-    <nav className="bg-purple-800">
+    <nav className="bg-blue-200">
       <div className="max-w-7xl mx-auto px-4">
         <div className="flex items-center justify-between h-16">
           <div className="flex items-center">
-            <Link to="/" className="text-white font-bold text-xl">
+            <Link to="/" className="text-gray-900 font-bold text-xl">
               GigsTyping
             </Link>
             <div className="ml-10 flex items-baseline space-x-4">
