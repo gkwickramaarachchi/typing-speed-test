@@ -1,5 +1,11 @@
 import React, { useState, useEffect, useCallback } from "react";
-import { Clock, RotateCcw, Play, Square } from "lucide-react";
+import { Clock, RotateCcw, Play, Square, X } from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 const TEXT_SAMPLES = [
   `The quick brown fox jumps over the lazy dog. Technology continues to evolve at an unprecedented pace, transforming how we live and work. Innovation drives progress, pushing boundaries and creating new possibilities.`,
@@ -38,6 +44,13 @@ const TypingTest = () => {
   const [accuracy, setAccuracy] = useState(100);
   const [isFinished, setIsFinished] = useState(false);
   const [activeKeys, setActiveKeys] = useState<Set<string>>(new Set());
+
+  const formatTime = (seconds: number) => {
+    const hours = Math.floor(seconds / 3600);
+    const minutes = Math.floor((seconds % 3600) / 60);
+    const remainingSeconds = seconds % 60;
+    return { hours, minutes, seconds: remainingSeconds };
+  };
 
   const calculateStats = useCallback(() => {
     const words = input.trim().split(" ").length;
@@ -137,6 +150,40 @@ const TypingTest = () => {
     });
   };
 
+  const renderKeyboard = () => {
+    return (
+      <div className="w-full max-w-4xl mx-auto mt-8">
+        {KEYBOARD_LAYOUT.map((row, rowIndex) => (
+          <div key={rowIndex} className="flex justify-center gap-2 mb-2">
+            {row.map((key) => (
+              <div
+                key={key}
+                className={`w-16 h-16 flex items-center justify-center rounded-lg font-medium text-xl transition-colors ${
+                  activeKeys.has(key)
+                    ? "bg-green-500 text-white"
+                    : "bg-gray-200 text-gray-700"
+                }`}
+              >
+                {key.toUpperCase()}
+              </div>
+            ))}
+          </div>
+        ))}
+        <div className="flex justify-center mt-2">
+          <div
+            className={`w-96 h-16 flex items-center justify-center rounded-lg font-medium text-xl transition-colors ${
+              activeKeys.has(" ")
+                ? "bg-green-500 text-white"
+                : "bg-gray-200 text-gray-700"
+            }`}
+          >
+            SPACE
+          </div>
+        </div>
+      </div>
+    );
+  };
+
   return (
     <div className="min-h-screen flex flex-col items-center justify-center p-6 bg-gray-50">
       <div className="w-full max-w-4xl space-y-8">
@@ -204,86 +251,68 @@ const TypingTest = () => {
           />
         </div>
 
-        <div className="w-full max-w-4xl mx-auto mt-8">
-          {KEYBOARD_LAYOUT.map((row, rowIndex) => (
-            <div key={rowIndex} className="flex justify-center gap-2 mb-2">
-              {row.map((key) => (
-                <div
-                  key={key}
-                  className={`w-16 h-16 flex items-center justify-center rounded-lg font-medium text-xl transition-colors ${
-                    activeKeys.has(key)
-                      ? "bg-green-500 text-white"
-                      : "bg-gray-200 text-gray-700"
-                  }`}
-                >
-                  {key.toUpperCase()}
+        {renderKeyboard()}
+
+        <Dialog open={isFinished} onOpenChange={(open) => !open && resetTest()}>
+          <DialogContent className="sm:max-w-md">
+            <DialogHeader>
+              <DialogTitle className="text-center text-2xl font-bold">
+                Test Results
+              </DialogTitle>
+            </DialogHeader>
+            <div className="p-6">
+              <div className="grid grid-cols-3 gap-4 mb-6 text-center">
+                <div>
+                  <div className="text-2xl font-mono">
+                    {formatTime(selectedTime - timeLeft).hours}
+                  </div>
+                  <div className="text-sm text-gray-500">Hours</div>
                 </div>
-              ))}
-            </div>
-          ))}
-          <div className="flex justify-center mt-2">
-            <div
-              className={`w-96 h-16 flex items-center justify-center rounded-lg font-medium text-xl transition-colors ${
-                activeKeys.has(" ")
-                  ? "bg-green-500 text-white"
-                  : "bg-gray-200 text-gray-700"
-              }`}
-            >
-              SPACE
-            </div>
-          </div>
-        </div>
+                <div>
+                  <div className="text-2xl font-mono">
+                    {formatTime(selectedTime - timeLeft).minutes}
+                  </div>
+                  <div className="text-sm text-gray-500">Minutes</div>
+                </div>
+                <div>
+                  <div className="text-2xl font-mono">
+                    {formatTime(selectedTime - timeLeft).seconds}
+                  </div>
+                  <div className="text-sm text-gray-500">Seconds</div>
+                </div>
+              </div>
 
-        {isFinished && (
-          <div className="bg-white rounded-lg shadow-sm p-6 space-y-6">
-            <h2 className="text-2xl font-bold text-center text-gray-800">Test Results</h2>
-            
-            <div className="grid grid-cols-3 gap-6">
-              <div className="bg-gray-50 p-4 rounded-lg text-center">
-                <p className="text-3xl font-bold text-green-600">{wpm}</p>
-                <p className="text-sm text-gray-600 mt-1">Words per Minute</p>
+              <div className="grid grid-cols-2 gap-4 mb-8">
+                <div className="bg-gray-50 p-4 rounded-lg text-center">
+                  <div className="text-sm text-gray-500 mb-1">WPM</div>
+                  <div className="text-2xl font-bold text-blue-600">{wpm}</div>
+                </div>
+                <div className="bg-gray-50 p-4 rounded-lg text-center">
+                  <div className="text-sm text-gray-500 mb-1">Accuracy</div>
+                  <div className="text-2xl font-bold text-green-600">{accuracy}%</div>
+                </div>
+                <div className="bg-gray-50 p-4 rounded-lg text-center">
+                  <div className="text-sm text-gray-500 mb-1">Time Left</div>
+                  <div className="text-2xl font-bold text-purple-600">{timeLeft}s</div>
+                </div>
+                <div className="bg-gray-50 p-4 rounded-lg text-center">
+                  <div className="text-sm text-gray-500 mb-1">Characters</div>
+                  <div className="text-2xl font-bold text-orange-600">
+                    {[...input].filter((char, i) => char === text[i]).length}/
+                    {input.length}
+                  </div>
+                </div>
               </div>
-              <div className="bg-gray-50 p-4 rounded-lg text-center">
-                <p className="text-3xl font-bold text-blue-600">{cpm}</p>
-                <p className="text-sm text-gray-600 mt-1">Characters per Minute</p>
-              </div>
-              <div className="bg-gray-50 p-4 rounded-lg text-center">
-                <p className="text-3xl font-bold text-purple-600">{accuracy}%</p>
-                <p className="text-sm text-gray-600 mt-1">Accuracy</p>
-              </div>
-            </div>
-            
-            <div className="grid grid-cols-2 gap-4 text-sm text-gray-600">
-              <div className="flex justify-between">
-                <span>Characters typed:</span>
-                <span className="font-medium">{input.length}</span>
-              </div>
-              <div className="flex justify-between">
-                <span>Correct characters:</span>
-                <span className="font-medium">
-                  {[...input].filter((char, i) => char === text[i]).length}
-                </span>
-              </div>
-              <div className="flex justify-between">
-                <span>Time taken:</span>
-                <span className="font-medium">{selectedTime - timeLeft}s</span>
-              </div>
-              <div className="flex justify-between">
-                <span>Time limit:</span>
-                <span className="font-medium">{selectedTime}s</span>
-              </div>
-            </div>
 
-            <div className="text-center mt-6">
               <button
                 onClick={resetTest}
-                className="px-6 py-2 bg-gray-800 text-white rounded-lg hover:bg-gray-700 transition-colors"
+                className="w-full py-2 bg-gray-900 text-white rounded-lg hover:bg-gray-800 transition-colors"
               >
-                Try Again
+                Close
               </button>
             </div>
-          </div>
-        )}
+          </DialogContent>
+        </Dialog>
 
         {!isActive && !isFinished && (
           <div className="flex justify-center">
@@ -313,7 +342,7 @@ const TypingTest = () => {
           <div className="flex justify-center">
             <button
               onClick={() => {
-                if (isActive || timeLeft <= 1) {
+                if (isActive) {
                   setIsActive(false);
                   setIsFinished(true);
                   calculateStats();
