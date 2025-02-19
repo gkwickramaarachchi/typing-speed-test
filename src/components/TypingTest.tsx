@@ -1,4 +1,5 @@
-import React, { useState, useEffect, useCallback } from "react";
+
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import { Clock, RotateCcw, Play, Square, X } from "lucide-react";
 import {
   Dialog,
@@ -44,6 +45,7 @@ const TypingTest = () => {
   const [accuracy, setAccuracy] = useState(100);
   const [isFinished, setIsFinished] = useState(false);
   const [activeKeys, setActiveKeys] = useState<Set<string>>(new Set());
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   const formatTime = (seconds: number) => {
     const hours = Math.floor(seconds / 3600);
@@ -69,20 +71,26 @@ const TypingTest = () => {
     setAccuracy(Math.round(currentAccuracy));
   }, [input, text, timeLeft, selectedTime]);
 
+  const finishTest = useCallback(() => {
+    setIsActive(false);
+    setIsFinished(true);
+    calculateStats();
+  }, [calculateStats]);
+
   const startTest = () => {
     if (!isActive && !isFinished) {
-      if (selectedTime < 1) {
-        return;
-      }
+      if (selectedTime < 1) return;
+      
       const randomIndex = Math.floor(Math.random() * TEXT_SAMPLES.length);
       setText(TEXT_SAMPLES[randomIndex]);
       setTimeLeft(selectedTime);
       setIsActive(true);
       setInput("");
       setActiveKeys(new Set());
-      const textarea = document.querySelector('textarea');
-      if (textarea) {
-        textarea.focus();
+      
+      // Focus the textarea immediately after setting isActive to true
+      if (textareaRef.current) {
+        textareaRef.current.focus();
       }
     }
   };
@@ -93,16 +101,14 @@ const TypingTest = () => {
       interval = window.setInterval(() => {
         setTimeLeft((time) => {
           if (time <= 1) {
-            setIsActive(false);
-            setIsFinished(true);
-            calculateStats();
+            finishTest();
           }
           return time - 1;
         });
       }, 1000);
     }
     return () => clearInterval(interval);
-  }, [isActive, timeLeft, calculateStats]);
+  }, [isActive, timeLeft, finishTest]);
 
   useEffect(() => {
     if (isActive) {
@@ -139,6 +145,10 @@ const TypingTest = () => {
   const handleInput = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
     if (isActive) {
       setInput(e.target.value);
+      // If user has typed all the text, finish the test early
+      if (e.target.value.length === text.length) {
+        finishTest();
+      }
     }
   };
 
@@ -261,6 +271,7 @@ const TypingTest = () => {
             {renderText()}
           </div>
           <textarea
+            ref={textareaRef}
             value={input}
             onChange={handleInput}
             disabled={!isActive || isFinished}
@@ -347,13 +358,7 @@ const TypingTest = () => {
         {isActive && (
           <div className="flex justify-center">
             <button
-              onClick={() => {
-                if (isActive) {
-                  setIsActive(false);
-                  setIsFinished(true);
-                  calculateStats();
-                }
-              }}
+              onClick={finishTest}
               className="px-6 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors flex items-center space-x-2"
             >
               <Square className="w-4 h-4" />
