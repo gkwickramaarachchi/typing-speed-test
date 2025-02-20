@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import { Clock, RotateCcw, Play, Square } from "lucide-react";
 import VirtualKeyboard from "./typing/VirtualKeyboard";
@@ -67,8 +68,11 @@ const TypingTest = () => {
     if (!isActive && !isFinished) {
       if (selectedTime < 1) return;
       
-      const randomIndex = Math.floor(Math.random() * TEXT_SAMPLES[selectedTime].length);
-      setText(TEXT_SAMPLES[selectedTime][randomIndex]);
+      if (!isCustomMode) {
+        const randomIndex = Math.floor(Math.random() * TEXT_SAMPLES[selectedTime].length);
+        setText(TEXT_SAMPLES[selectedTime][randomIndex]);
+      }
+      
       setTimeLeft(selectedTime);
       setInput("");
       setActiveKeys(new Set());
