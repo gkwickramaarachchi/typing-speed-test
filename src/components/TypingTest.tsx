@@ -1,10 +1,12 @@
-
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import { Clock, RotateCcw, Play, Square } from "lucide-react";
 import VirtualKeyboard from "./typing/VirtualKeyboard";
 import ResultsDialog from "./typing/ResultsDialog";
 import { TEXT_SAMPLES, TIMER_OPTIONS } from "@/constants/typingTest";
-import { calculateStats } from "@/utils/typingTestUtils";
+import { calculateStats, calculateSuggestedTime } from "@/utils/typingTestUtils";
+import { Textarea } from "@/components/ui/textarea";
+import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
 
 const TypingTest = () => {
   const [text, setText] = useState(TEXT_SAMPLES[60][0]);
@@ -17,6 +19,8 @@ const TypingTest = () => {
   const [accuracy, setAccuracy] = useState(100);
   const [isFinished, setIsFinished] = useState(false);
   const [activeKeys, setActiveKeys] = useState<Set<string>>(new Set());
+  const [customText, setCustomText] = useState("");
+  const [isCustomMode, setIsCustomMode] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   const updateStats = useCallback(() => {
@@ -33,9 +37,31 @@ const TypingTest = () => {
   }, [updateStats]);
 
   useEffect(() => {
+    if (!isCustomMode) {
+      const randomIndex = Math.floor(Math.random() * TEXT_SAMPLES[selectedTime].length);
+      setText(TEXT_SAMPLES[selectedTime][randomIndex]);
+    }
+  }, [selectedTime, isCustomMode]);
+
+  const handleCustomTextSubmit = () => {
+    if (customText.trim().length < 10) {
+      toast.error("Custom text must be at least 10 characters long");
+      return;
+    }
+    setText(customText.trim());
+    setIsCustomMode(true);
+    const suggestedTime = calculateSuggestedTime(customText);
+    setSelectedTime(suggestedTime);
+    setTimeLeft(suggestedTime);
+    toast.success(`Timer set to ${suggestedTime} seconds based on text length`);
+  };
+
+  const handleUseDefaultText = () => {
+    setIsCustomMode(false);
+    setCustomText("");
     const randomIndex = Math.floor(Math.random() * TEXT_SAMPLES[selectedTime].length);
     setText(TEXT_SAMPLES[selectedTime][randomIndex]);
-  }, [selectedTime]);
+  };
 
   const startTest = () => {
     if (!isActive && !isFinished) {
@@ -119,8 +145,10 @@ const TypingTest = () => {
     setWpm(0);
     setCpm(0);
     setAccuracy(100);
-    const randomIndex = Math.floor(Math.random() * TEXT_SAMPLES[selectedTime].length);
-    setText(TEXT_SAMPLES[selectedTime][randomIndex]);
+    if (!isCustomMode) {
+      const randomIndex = Math.floor(Math.random() * TEXT_SAMPLES[selectedTime].length);
+      setText(TEXT_SAMPLES[selectedTime][randomIndex]);
+    }
   };
 
   const renderText = () => {
@@ -140,6 +168,33 @@ const TypingTest = () => {
   return (
     <div className="min-h-screen flex flex-col items-center justify-center p-6 bg-gray-50">
       <div className="w-full max-w-4xl space-y-8">
+        {!isActive && !isFinished && (
+          <div className="space-y-4">
+            <Textarea
+              placeholder="Enter or paste your custom text here..."
+              value={customText}
+              onChange={(e) => setCustomText(e.target.value)}
+              className="min-h-[100px] w-full"
+              disabled={isActive}
+            />
+            <div className="flex justify-end space-x-4">
+              <Button
+                variant="secondary"
+                onClick={handleUseDefaultText}
+                disabled={isActive}
+              >
+                Use Default Text
+              </Button>
+              <Button
+                onClick={handleCustomTextSubmit}
+                disabled={isActive || customText.trim().length < 10}
+              >
+                Use Custom Text
+              </Button>
+            </div>
+          </div>
+        )}
+
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-4">
             <div className="flex items-center space-x-2">
@@ -155,25 +210,27 @@ const TypingTest = () => {
             </button>
           </div>
           
-          <div className="flex items-center space-x-4">
-            <div className="flex space-x-2">
-              {TIMER_OPTIONS.map((option) => (
-                <button
-                  key={option.value}
-                  onClick={() => {
-                    setSelectedTime(option.value);
-                  }}
-                  className={`px-3 py-1 rounded-md transition-colors ${
-                    selectedTime === option.value
-                      ? "bg-gray-800 text-white"
-                      : "bg-gray-200 text-gray-700 hover:bg-gray-300"
-                  }`}
-                >
-                  {option.label}
-                </button>
-              ))}
+          {!isCustomMode && (
+            <div className="flex items-center space-x-4">
+              <div className="flex space-x-2">
+                {TIMER_OPTIONS.map((option) => (
+                  <button
+                    key={option.value}
+                    onClick={() => {
+                      setSelectedTime(option.value);
+                    }}
+                    className={`px-3 py-1 rounded-md transition-colors ${
+                      selectedTime === option.value
+                        ? "bg-gray-800 text-white"
+                        : "bg-gray-200 text-gray-700 hover:bg-gray-300"
+                    }`}
+                  >
+                    {option.label}
+                  </button>
+                ))}
+              </div>
             </div>
-          </div>
+          )}
 
           <div className="flex space-x-6">
             <div className="text-center">
