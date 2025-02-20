@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import { Clock, RotateCcw, Play, Square } from "lucide-react";
 import VirtualKeyboard from "./typing/VirtualKeyboard";
@@ -77,9 +76,12 @@ const TypingTest = () => {
       setInput("");
       setActiveKeys(new Set());
       
-      if (textareaRef.current) {
-        textareaRef.current.focus();
-      }
+      // Ensure textarea is focused immediately after starting
+      setTimeout(() => {
+        if (textareaRef.current) {
+          textareaRef.current.focus();
+        }
+      }, 0);
       
       setIsActive(true);
     }
