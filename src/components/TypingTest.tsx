@@ -1,14 +1,14 @@
+
 import React, { useState, useEffect, useCallback, useRef } from "react";
-import { Clock, RotateCcw, Play, Square } from "lucide-react";
+import { Play, Square } from "lucide-react";
 import VirtualKeyboard from "./typing/VirtualKeyboard";
 import ResultsDialog from "./typing/ResultsDialog";
-import TextToSpeech from "./typing/TextToSpeech";
-import { TEXT_SAMPLES, TIMER_OPTIONS } from "@/constants/typingTest";
+import TestControls from "./typing/TestControls";
+import TimerOptions from "./typing/TimerOptions";
+import TestStats from "./typing/TestStats";
+import CustomTextInput from "./typing/CustomTextInput";
+import { TEXT_SAMPLES } from "@/constants/typingTest";
 import { calculateStats, calculateSuggestedTime } from "@/utils/typingTestUtils";
-import { Textarea } from "@/components/ui/textarea";
-import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 
 const TypingTest = () => {
@@ -90,6 +90,20 @@ const TypingTest = () => {
     }
   };
 
+  const resetTest = () => {
+    setInput("");
+    setTimeLeft(selectedTime);
+    setIsActive(false);
+    setIsFinished(false);
+    setWpm(0);
+    setCpm(0);
+    setAccuracy(100);
+    if (!isCustomMode) {
+      const randomIndex = Math.floor(Math.random() * TEXT_SAMPLES[selectedTime].length);
+      setText(TEXT_SAMPLES[selectedTime][randomIndex]);
+    }
+  };
+
   useEffect(() => {
     let interval: number | undefined;
     if (isActive && timeLeft > 0) {
@@ -146,20 +160,6 @@ const TypingTest = () => {
     }
   };
 
-  const resetTest = () => {
-    setInput("");
-    setTimeLeft(selectedTime);
-    setIsActive(false);
-    setIsFinished(false);
-    setWpm(0);
-    setCpm(0);
-    setAccuracy(100);
-    if (!isCustomMode) {
-      const randomIndex = Math.floor(Math.random() * TEXT_SAMPLES[selectedTime].length);
-      setText(TEXT_SAMPLES[selectedTime][randomIndex]);
-    }
-  };
-
   const renderText = () => {
     return text.split("").map((char, index) => {
       let color = "text-gray-500";
@@ -178,93 +178,33 @@ const TypingTest = () => {
     <div className="min-h-screen flex flex-col items-center justify-center p-6 bg-gray-50">
       <div className="w-full max-w-4xl space-y-8">
         {!isActive && !isFinished && (
-          <div className="space-y-4">
-            <Textarea
-              placeholder="Enter or paste your custom text here..."
-              value={customText}
-              onChange={(e) => setCustomText(e.target.value)}
-              className="min-h-[100px] w-full"
-              disabled={isActive}
-            />
-            <div className="flex justify-end space-x-4">
-              <Button
-                variant="secondary"
-                onClick={handleUseDefaultText}
-                disabled={isActive}
-              >
-                Use Default Text
-              </Button>
-              <Button
-                onClick={handleCustomTextSubmit}
-                disabled={isActive || customText.trim().length < 10}
-              >
-                Use Custom Text
-              </Button>
-            </div>
-          </div>
+          <CustomTextInput
+            customText={customText}
+            setCustomText={setCustomText}
+            handleCustomTextSubmit={handleCustomTextSubmit}
+            handleUseDefaultText={handleUseDefaultText}
+            isActive={isActive}
+          />
         )}
 
         <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-4">
-            <div className="flex items-center space-x-2">
-              <Clock className="w-5 h-5 text-gray-600" />
-              <span className="text-xl font-mono">{timeLeft}s</span>
-            </div>
-            <button
-              onClick={resetTest}
-              className="p-2 rounded-full hover:bg-gray-200 transition-colors"
-              title="Reset test"
-            >
-              <RotateCcw className="w-5 h-5 text-gray-600" />
-            </button>
-            <TextToSpeech text={text} disabled={isActive} autoPlay={autoPlaySpeech && isActive} />
-            <div className="flex items-center space-x-2">
-              <Checkbox
-                id="autoPlaySpeech"
-                checked={autoPlaySpeech}
-                onCheckedChange={(checked) => setAutoPlaySpeech(checked as boolean)}
-                disabled={isActive}
-              />
-              <Label htmlFor="autoPlaySpeech">Auto-play speech on start</Label>
-            </div>
-          </div>
+          <TestControls
+            timeLeft={timeLeft}
+            resetTest={resetTest}
+            text={text}
+            isActive={isActive}
+            autoPlaySpeech={autoPlaySpeech}
+            setAutoPlaySpeech={setAutoPlaySpeech}
+          />
           
           {!isCustomMode && (
-            <div className="flex items-center space-x-4">
-              <div className="flex space-x-2">
-                {TIMER_OPTIONS.map((option) => (
-                  <button
-                    key={option.value}
-                    onClick={() => {
-                      setSelectedTime(option.value);
-                    }}
-                    className={`px-3 py-1 rounded-md transition-colors ${
-                      selectedTime === option.value
-                        ? "bg-gray-800 text-white"
-                        : "bg-gray-200 text-gray-700 hover:bg-gray-300"
-                    }`}
-                  >
-                    {option.label}
-                  </button>
-                ))}
-              </div>
-            </div>
+            <TimerOptions
+              selectedTime={selectedTime}
+              setSelectedTime={setSelectedTime}
+            />
           )}
 
-          <div className="flex space-x-6">
-            <div className="text-center">
-              <p className="text-sm text-gray-600">WPM</p>
-              <p className="text-xl font-mono">{wpm}</p>
-            </div>
-            <div className="text-center">
-              <p className="text-sm text-gray-600">CPM</p>
-              <p className="text-xl font-mono">{cpm}</p>
-            </div>
-            <div className="text-center">
-              <p className="text-sm text-gray-600">Accuracy</p>
-              <p className="text-xl font-mono">{accuracy}%</p>
-            </div>
-          </div>
+          <TestStats wpm={wpm} cpm={cpm} accuracy={accuracy} />
         </div>
 
         <div className="relative">
