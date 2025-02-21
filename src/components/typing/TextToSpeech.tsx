@@ -7,9 +7,10 @@ import { toast } from 'sonner';
 interface TextToSpeechProps {
   text: string;
   disabled?: boolean;
+  autoPlay?: boolean;
 }
 
-const TextToSpeech = ({ text, disabled }: TextToSpeechProps) => {
+const TextToSpeech = ({ text, disabled, autoPlay }: TextToSpeechProps) => {
   const [isPlaying, setIsPlaying] = useState(false);
   const [speechSynthesis, setSpeechSynthesis] = useState<SpeechSynthesis | null>(null);
   const [utterance, setUtterance] = useState<SpeechSynthesisUtterance | null>(null);
@@ -19,6 +20,13 @@ const TextToSpeech = ({ text, disabled }: TextToSpeechProps) => {
       setSpeechSynthesis(window.speechSynthesis);
     }
   }, []);
+
+  // Auto-play effect
+  useEffect(() => {
+    if (autoPlay && !isPlaying && !disabled) {
+      handleSpeak();
+    }
+  }, [autoPlay, disabled]);
 
   const handleSpeak = () => {
     if (!speechSynthesis) {

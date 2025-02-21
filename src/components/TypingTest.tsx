@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import { Clock, RotateCcw, Play, Square } from "lucide-react";
 import VirtualKeyboard from "./typing/VirtualKeyboard";
@@ -8,6 +7,8 @@ import { TEXT_SAMPLES, TIMER_OPTIONS } from "@/constants/typingTest";
 import { calculateStats, calculateSuggestedTime } from "@/utils/typingTestUtils";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 
 const TypingTest = () => {
@@ -23,6 +24,7 @@ const TypingTest = () => {
   const [activeKeys, setActiveKeys] = useState<Set<string>>(new Set());
   const [customText, setCustomText] = useState("");
   const [isCustomMode, setIsCustomMode] = useState(false);
+  const [autoPlaySpeech, setAutoPlaySpeech] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   const updateStats = useCallback(() => {
@@ -78,7 +80,6 @@ const TypingTest = () => {
       setInput("");
       setActiveKeys(new Set());
       
-      // Ensure textarea is focused immediately after starting
       setTimeout(() => {
         if (textareaRef.current) {
           textareaRef.current.focus();
@@ -216,7 +217,16 @@ const TypingTest = () => {
             >
               <RotateCcw className="w-5 h-5 text-gray-600" />
             </button>
-            <TextToSpeech text={text} disabled={isActive} />
+            <TextToSpeech text={text} disabled={isActive} autoPlay={autoPlaySpeech && isActive} />
+            <div className="flex items-center space-x-2">
+              <Checkbox
+                id="autoPlaySpeech"
+                checked={autoPlaySpeech}
+                onCheckedChange={(checked) => setAutoPlaySpeech(checked as boolean)}
+                disabled={isActive}
+              />
+              <Label htmlFor="autoPlaySpeech">Auto-play speech on start</Label>
+            </div>
           </div>
           
           {!isCustomMode && (
