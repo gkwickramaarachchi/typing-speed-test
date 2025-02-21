@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { Volume2, Volume2Off } from 'lucide-react';
+import { Volume2, VolumeX } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
 
@@ -70,7 +70,7 @@ const TextToSpeech = ({ text, disabled }: TextToSpeechProps) => {
       className="rounded-full"
       title={isPlaying ? "Stop Speaking" : "Speak Text"}
     >
-      {isPlaying ? <Volume2Off className="h-4 w-4" /> : <Volume2 className="h-4 w-4" />}
+      {isPlaying ? <VolumeX className="h-4 w-4" /> : <Volume2 className="h-4 w-4" />}
     </Button>
   );
 };
