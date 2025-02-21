@@ -1,7 +1,9 @@
+
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import { Clock, RotateCcw, Play, Square } from "lucide-react";
 import VirtualKeyboard from "./typing/VirtualKeyboard";
 import ResultsDialog from "./typing/ResultsDialog";
+import TextToSpeech from "./typing/TextToSpeech";
 import { TEXT_SAMPLES, TIMER_OPTIONS } from "@/constants/typingTest";
 import { calculateStats, calculateSuggestedTime } from "@/utils/typingTestUtils";
 import { Textarea } from "@/components/ui/textarea";
@@ -214,6 +216,7 @@ const TypingTest = () => {
             >
               <RotateCcw className="w-5 h-5 text-gray-600" />
             </button>
+            <TextToSpeech text={text} disabled={isActive} />
           </div>
           
           {!isCustomMode && (
