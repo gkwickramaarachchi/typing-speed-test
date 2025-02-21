@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Volume2, VolumeX } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { toast } from 'sonner';
@@ -11,55 +11,65 @@ interface TextToSpeechProps {
 
 const TextToSpeech = ({ text, disabled }: TextToSpeechProps) => {
   const [isPlaying, setIsPlaying] = useState(false);
-  const [audio, setAudio] = useState<HTMLAudioElement | null>(null);
+  const [speechSynthesis, setSpeechSynthesis] = useState<SpeechSynthesis | null>(null);
+  const [utterance, setUtterance] = useState<SpeechSynthesisUtterance | null>(null);
 
-  const handleSpeak = async () => {
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      setSpeechSynthesis(window.speechSynthesis);
+    }
+  }, []);
+
+  const handleSpeak = () => {
+    if (!speechSynthesis) {
+      toast.error('Speech synthesis is not supported in your browser');
+      return;
+    }
+
+    if (isPlaying) {
+      speechSynthesis.cancel();
+      setIsPlaying(false);
+      return;
+    }
+
     try {
-      if (isPlaying && audio) {
-        audio.pause();
-        audio.currentTime = 0;
-        setIsPlaying(false);
-        return;
-      }
-
-      setIsPlaying(true);
-      const response = await fetch('https://api.elevenlabs.io/v1/text-to-speech/21m00Tcm4TlvDq8ikWAM', {
-        method: 'POST',
-        headers: {
-          'Accept': 'audio/mpeg',
-          'Content-Type': 'application/json',
-          'xi-api-key': import.meta.env.VITE_ELEVEN_LABS_API_KEY || '',
-        },
-        body: JSON.stringify({
-          text,
-          model_id: "eleven_monolingual_v1",
-          voice_settings: {
-            stability: 0.5,
-            similarity_boost: 0.5,
-          }
-        }),
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to generate speech');
-      }
-
-      const audioBlob = await response.blob();
-      const audioUrl = URL.createObjectURL(audioBlob);
-      const newAudio = new Audio(audioUrl);
+      const newUtterance = new SpeechSynthesisUtterance(text);
       
-      newAudio.onended = () => {
+      // Set properties for the speech
+      newUtterance.rate = 1.0; // Speech speed
+      newUtterance.pitch = 1.0; // Speech pitch
+      newUtterance.volume = 1.0; // Speech volume
+      
+      // Handle speech end
+      newUtterance.onend = () => {
         setIsPlaying(false);
       };
 
-      newAudio.play();
-      setAudio(newAudio);
+      // Handle speech error
+      newUtterance.onerror = (event) => {
+        console.error('Speech synthesis error:', event);
+        toast.error('Failed to generate speech. Please try again.');
+        setIsPlaying(false);
+      };
+
+      setUtterance(newUtterance);
+      setIsPlaying(true);
+      speechSynthesis.speak(newUtterance);
     } catch (error) {
       console.error('Text-to-speech error:', error);
       toast.error('Failed to generate speech. Please try again.');
       setIsPlaying(false);
     }
   };
+
+  // Cancel any ongoing speech when component unmounts
+  useEffect(() => {
+    return () => {
+      if (speechSynthesis) {
+        speechSynthesis.cancel();
+      }
+    };
+  }, [speechSynthesis]);
 
   return (
     <Button
