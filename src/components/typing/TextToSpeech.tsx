@@ -28,7 +28,7 @@ const TextToSpeech = ({ text, disabled }: TextToSpeechProps) => {
         headers: {
           'Accept': 'audio/mpeg',
           'Content-Type': 'application/json',
-          'xi-api-key': process.env.ELEVEN_LABS_API_KEY || '',
+          'xi-api-key': import.meta.env.VITE_ELEVEN_LABS_API_KEY || '',
         },
         body: JSON.stringify({
           text,
