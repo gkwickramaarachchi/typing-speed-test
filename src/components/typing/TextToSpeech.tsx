@@ -21,13 +21,6 @@ const TextToSpeech = ({ text, disabled, autoPlay }: TextToSpeechProps) => {
     }
   }, []);
 
-  // Auto-play effect
-  useEffect(() => {
-    if (autoPlay && !isPlaying && !disabled) {
-      handleSpeak();
-    }
-  }, [autoPlay, disabled]);
-
   const handleSpeak = () => {
     if (!speechSynthesis) {
       toast.error('Speech synthesis is not supported in your browser');
@@ -41,6 +34,9 @@ const TextToSpeech = ({ text, disabled, autoPlay }: TextToSpeechProps) => {
     }
 
     try {
+      // Cancel any existing speech first
+      speechSynthesis.cancel();
+      
       const newUtterance = new SpeechSynthesisUtterance(text);
       
       // Set properties for the speech
@@ -70,14 +66,31 @@ const TextToSpeech = ({ text, disabled, autoPlay }: TextToSpeechProps) => {
     }
   };
 
-  // Cancel any ongoing speech when component unmounts
+  // Auto-play effect
+  useEffect(() => {
+    // Only trigger speech if autoPlay is true and we're not already playing
+    if (autoPlay && !isPlaying && !disabled && text) {
+      handleSpeak();
+    }
+  }, [autoPlay, text, disabled]);
+
+  // Cancel any ongoing speech when component unmounts or when disabled
   useEffect(() => {
     return () => {
       if (speechSynthesis) {
         speechSynthesis.cancel();
+        setIsPlaying(false);
       }
     };
   }, [speechSynthesis]);
+
+  // Cancel speech when disabled changes to true
+  useEffect(() => {
+    if (disabled && speechSynthesis && isPlaying) {
+      speechSynthesis.cancel();
+      setIsPlaying(false);
+    }
+  }, [disabled]);
 
   return (
     <Button
