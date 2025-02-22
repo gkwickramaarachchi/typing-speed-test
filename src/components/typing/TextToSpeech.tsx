@@ -13,7 +13,6 @@ interface TextToSpeechProps {
 const TextToSpeech = ({ text, disabled, autoPlay }: TextToSpeechProps) => {
   const [isPlaying, setIsPlaying] = useState(false);
   const [speechSynthesis, setSpeechSynthesis] = useState<SpeechSynthesis | null>(null);
-  const [utterance, setUtterance] = useState<SpeechSynthesisUtterance | null>(null);
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -34,29 +33,24 @@ const TextToSpeech = ({ text, disabled, autoPlay }: TextToSpeechProps) => {
     }
 
     try {
-      // Cancel any existing speech first
+      // Cancel any existing speech
       speechSynthesis.cancel();
       
       const newUtterance = new SpeechSynthesisUtterance(text);
+      newUtterance.rate = 1.0;
+      newUtterance.pitch = 1.0;
+      newUtterance.volume = 1.0;
       
-      // Set properties for the speech
-      newUtterance.rate = 1.0; // Speech speed
-      newUtterance.pitch = 1.0; // Speech pitch
-      newUtterance.volume = 1.0; // Speech volume
-      
-      // Handle speech end
       newUtterance.onend = () => {
         setIsPlaying(false);
       };
 
-      // Handle speech error
       newUtterance.onerror = (event) => {
         console.error('Speech synthesis error:', event);
         toast.error('Failed to generate speech. Please try again.');
         setIsPlaying(false);
       };
 
-      setUtterance(newUtterance);
       setIsPlaying(true);
       speechSynthesis.speak(newUtterance);
     } catch (error) {
@@ -66,15 +60,18 @@ const TextToSpeech = ({ text, disabled, autoPlay }: TextToSpeechProps) => {
     }
   };
 
-  // Auto-play effect
+  // Handle auto-play
   useEffect(() => {
-    // Only trigger speech if autoPlay is true and we're not already playing
-    if (autoPlay && !isPlaying && !disabled && text) {
-      handleSpeak();
+    if (autoPlay && text && !disabled && !isPlaying && speechSynthesis) {
+      // Small delay to ensure proper initialization
+      const timer = setTimeout(() => {
+        handleSpeak();
+      }, 100);
+      return () => clearTimeout(timer);
     }
-  }, [autoPlay, text, disabled]);
+  }, [autoPlay, text, disabled, speechSynthesis]);
 
-  // Cancel any ongoing speech when component unmounts or when disabled
+  // Cleanup on unmount
   useEffect(() => {
     return () => {
       if (speechSynthesis) {
@@ -84,13 +81,13 @@ const TextToSpeech = ({ text, disabled, autoPlay }: TextToSpeechProps) => {
     };
   }, [speechSynthesis]);
 
-  // Cancel speech when disabled changes to true
+  // Handle disabled state
   useEffect(() => {
     if (disabled && speechSynthesis && isPlaying) {
       speechSynthesis.cancel();
       setIsPlaying(false);
     }
-  }, [disabled]);
+  }, [disabled, speechSynthesis, isPlaying]);
 
   return (
     <Button
