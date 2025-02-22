@@ -62,14 +62,10 @@ const TextToSpeech = ({ text, disabled, autoPlay }: TextToSpeechProps) => {
 
   // Handle auto-play
   useEffect(() => {
-    if (autoPlay && text && !disabled && !isPlaying && speechSynthesis) {
-      // Small delay to ensure proper initialization
-      const timer = setTimeout(() => {
-        handleSpeak();
-      }, 100);
-      return () => clearTimeout(timer);
+    if (autoPlay && text && speechSynthesis && !isPlaying) {
+      handleSpeak();
     }
-  }, [autoPlay, text, disabled, speechSynthesis]);
+  }, [autoPlay, text]);
 
   // Cleanup on unmount
   useEffect(() => {
@@ -80,14 +76,6 @@ const TextToSpeech = ({ text, disabled, autoPlay }: TextToSpeechProps) => {
       }
     };
   }, [speechSynthesis]);
-
-  // Handle disabled state
-  useEffect(() => {
-    if (disabled && speechSynthesis && isPlaying) {
-      speechSynthesis.cancel();
-      setIsPlaying(false);
-    }
-  }, [disabled, speechSynthesis, isPlaying]);
 
   return (
     <Button
