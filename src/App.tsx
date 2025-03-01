@@ -15,6 +15,7 @@ import Footer from "./components/Footer";
 import Privacy from "./pages/Privacy";
 import Terms from "./pages/Terms";
 import Disclaimer from "./pages/Disclaimer";
+import Sitemap from "./pages/Sitemap";
 
 const queryClient = new QueryClient();
 
@@ -36,6 +37,7 @@ const App = () => (
               <Route path="/privacy" element={<Privacy />} />
               <Route path="/terms" element={<Terms />} />
               <Route path="/disclaimer" element={<Disclaimer />} />
+              <Route path="/sitemap" element={<Sitemap />} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </main>
