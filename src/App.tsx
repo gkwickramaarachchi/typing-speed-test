@@ -16,6 +16,7 @@ import Privacy from "./pages/Privacy";
 import Terms from "./pages/Terms";
 import Disclaimer from "./pages/Disclaimer";
 import Sitemap from "./pages/Sitemap";
+import ImproveTypingSkills from "./pages/ImproveTypingSkills";
 
 const queryClient = new QueryClient();
 
@@ -33,6 +34,7 @@ const App = () => (
               <Route path="/typing-test" element={<Index />} />
               <Route path="/help" element={<Help />} />
               <Route path="/blog" element={<Blog />} />
+              <Route path="/blog/improve-typing-skills" element={<ImproveTypingSkills />} />
               <Route path="/about" element={<About />} />
               <Route path="/privacy" element={<Privacy />} />
               <Route path="/terms" element={<Terms />} />
